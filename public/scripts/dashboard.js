@@ -154,6 +154,7 @@ function renderTable() {
             <td class='text-truncate' data-toggle='modal' data-target='#form_modal' data-type='View' alumni_id='${alumnis[i]._id}'>${alumnis[i].email}</td>
             <td data-toggle='modal' data-target='#form_modal' data-type='View' alumni_id='${alumnis[i]._id}'>${alumnis[i].emailList}</td>
             <td class='px-0'><button class='btn btn-secondary btn-sm mr-3' data-toggle='modal' data-target='#form_modal' data-type='Update' alumni_id='${alumnis[i]._id}'>Update</button></td>
+            <td class='px-0'><button class='btn btn-secondary btn-sm mr-3' alumni_id='${alumnis[i]._id}' onclick='Feature_alumni(event)'>Feature</button></td>
             <td class='px-0'><button class='btn btn-danger btn-sm' alumni_id='${alumnis[i]._id}' onclick='DELETE_alumni(event)'>Delete</button></td>`;
             tbody.appendChild(tr);
         }
@@ -258,5 +259,8 @@ function DELETE_alumni(event) {
         console.log('XMLHTTMLRequest Error')
     }
 
+}
 
+function Feature_alumni(event) {
+    
 }

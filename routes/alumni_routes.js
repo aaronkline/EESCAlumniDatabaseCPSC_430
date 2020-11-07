@@ -35,7 +35,8 @@ router.post('/form', [
             emailList: request.body.emailList == 'on' ? true : false,
             description: request.body.description,
             createdDate: new Date(),
-            status: 'pending'
+            status: 'pending',
+            isFeatured: 'false'
         });
 
         if (!errors.isEmpty()) {
