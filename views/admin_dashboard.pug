@@ -21,6 +21,7 @@ html(lang='en')
                             th.text-truncate(scope='col') Occupation
                             th.text-truncate(scope='col') Email
                             th.text-truncate(scope='col') Email List
+                            th.text-truncate(scope='col') Featured
                             th.hidden Edit
                             th.hidden Delete
                     tbody
@@ -34,6 +35,7 @@ html(lang='en')
                                 td.text-truncate(data-toggle='modal' data-target='#form_modal' data-type='View' alumni_id = alumni._id ) #{alumni.occupation}
                                 td.text-truncate(data-toggle='modal' data-target='#form_modal' data-type='View' alumni_id = alumni._id ) #{alumni.email}
                                 td.text-truncate(data-toggle='modal' data-target='#form_modal' data-type='View' alumni_id = alumni._id ) #{alumni.emailList}
+                                td.text-truncate(data-toggle='modal' data-target='#form_modal' data-type='View' alumni_id = alumni._id ) #{alumni.isFeatured}
                                 td.px-0
                                     button.btn.btn-secondary.btn-sm.mr-3(data-toggle='modal' data-target='#form_modal' data-type='Update' alumni_id = alumni._id ) Update
                                 td.px-0
