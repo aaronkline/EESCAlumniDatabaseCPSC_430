@@ -70,7 +70,8 @@ router.post('/create', isLoggedIn, [
             emailList: req.body.emailList,
             description: req.body.description,
             createdDate: new Date(),
-            status: 'approved'
+            status: 'approved',
+            isFeatured: false
         });
 
         // check for errors
@@ -116,7 +117,56 @@ router.post('/:id/update', isLoggedIn,  [
             email: req.body.email,
             emailList: req.body.emailList,
             description: req.body.description,
-            status: 'approved'
+            status: 'approved',
+            isFeatured: req.body.isFeatured
+            //isFeatured: false
+        }); 
+
+        // check for errors
+        if (!errors.isEmpty()) {
+            // Error block
+            res.status(500).send(errors.array());
+        } else {
+            // Success block
+            // instead of alumni.save use alumni.findByIDAndUpdate
+            Alumni.findByIdAndUpdate(req.params.id, alumni, (err, result) => {
+                    if (err) { return next(err); }
+                    res.sendStatus(200);
+            });
+        }
+    }
+]);
+
+router.post('/:id/feature', isLoggedIn,  [
+
+    // Data validation and sanitization
+    body('firstName', 'First Name must be specified').trim().isLength({ min: 1}).escape(),
+    body('lastName', 'Last Name must be specified').trim().isLength({ min: 1}).escape(),
+    body('gradYear', 'Graduation Year must be specified').trim().isLength({ min: 1}).escape(),
+    body('degreeType', 'Degree Type must be specified').trim().isLength({ min: 1}).escape(),
+    body('occupation').trim().optional({ checkFalsy: true }).escape(),
+    body('email', 'Email must be specified').trim().isLength({ min: 1}).escape(),
+    body('email', 'Email must be valid').isEmail(),
+    body('description').trim().optional({ checkFalsy: true }).escape(),
+
+    (req, res, next) => {
+        // collect any errors
+        const errors = validationResult(req);
+
+        // create new alumni
+        let alumni = new Alumni ({
+            _id: req.params.id,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            gradYear: req.body.gradYear,
+            degreeType: req.body.degreeType,
+            occupation:  req.body.occupation == '' ? 'N/A' : req.body.occupation,
+            email: req.body.email,
+            emailList: req.body.emailList,
+            description: req.body.description,
+            status: 'approved',
+            //isFeatured: req.body.isFeatured
+            isFeatured: true
         }); 
 
         // check for errors
