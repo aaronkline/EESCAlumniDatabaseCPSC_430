@@ -40,7 +40,7 @@ const apiRouter = require('./routes/api_routes');
 app.use('/api', apiRouter);
 
 app.get('/', (req, res) => {
-    res.render('index.html');
+    res.render('index');
 });
 
 app.listen(port,
