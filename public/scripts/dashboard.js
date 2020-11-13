@@ -264,8 +264,6 @@ function DELETE_alumni(event) {
 
 
 function Feature_alumni(event) {
-    
-
     GET_alumni('/api/alumni/' + event.srcElement.getAttribute('alumni_id'), (alumni) => {
         let firstName = alumni.firstName;
         let lastName = alumni.lastName;
@@ -275,10 +273,11 @@ function Feature_alumni(event) {
         let email = alumni.email;
         let emailList = alumni.emailList;
         let description = alumni.description === undefined ? '' : alumni.description;
+        let isFeatured = alumni.isFeatured;
 
 
         let url = '/admin/' + event.srcElement.getAttribute('alumni_id') + '/feature';
-        let isFeatured = true;
+        //let isFeatured = true;
         let params = "firstName="+firstName+"&lastName="+lastName+"&gradYear="+gradYear+"&degreeType="+degreeType+"&occupation="+occupation+"&email="+email+"&emailList="+emailList+"&description="+description+"&isFeatured="+isFeatured;
 
         let xhr = new XMLHttpRequest();

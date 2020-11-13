@@ -153,6 +153,15 @@ router.post('/:id/feature', isLoggedIn,  [
         // collect any errors
         const errors = validationResult(req);
 
+        /*
+        let isFeaturedToggled;
+        if(req.body.isFeatured) {
+            isFeaturedToggled = false;
+        } else {
+            isFeaturedToggled = true;
+        }
+        */
+
         // create new alumni
         let alumni = new Alumni ({
             _id: req.params.id,
@@ -165,7 +174,7 @@ router.post('/:id/feature', isLoggedIn,  [
             emailList: req.body.emailList,
             description: req.body.description,
             status: 'approved',
-            //isFeatured: req.body.isFeatured
+            //isFeatured: isFeaturedToggled
             isFeatured: true
         }); 
 
