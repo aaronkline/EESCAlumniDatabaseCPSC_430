@@ -233,7 +233,7 @@ router.post('/login', passport.authenticate('local', {
 //Handling user logout  
 router.get("/logout", function (req, res) { 
     req.logout(); 
-    res.sendFile(path.join(__dirname + '/../public/index.html'));
+    res.render(path.join(__dirname + '/../views/index.pug'));
 }); 
   
 function isLoggedIn(req, res, next) { 
