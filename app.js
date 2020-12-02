@@ -3,6 +3,10 @@ const app = express();
 const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
+
+//testing this
+//let Alumni = require('./models/alumni');
+
 const port = process.env.PORT || 5000
 
 //Load .env file
@@ -39,9 +43,37 @@ app.use('/alumni', alumniRouter);
 const apiRouter = require('./routes/api_routes');
 app.use('/api', apiRouter);
 
+
 app.get('/', (req, res) => {
     res.render('index');
 });
 
+
+//just a test
+/*
+app.get('/', (req, res) => {
+    Alumni.find({'isFeatured': 'true'}).exec((err, alumni_list) => {
+        if (err) {return next(err);}
+        res.render('index', {alumni_list: alumni_list});
+    });
+});
+*/
+
 app.listen(port,
     () => console.log(`Server is running on port ${port}`))
+
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+    next(createError(404));
+});
+
+// error handler
+app.use(function (err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get("env") === "development" ? err : {};
+  
+    // render the error page
+    res.sendStatus(err.status || 500);
+});

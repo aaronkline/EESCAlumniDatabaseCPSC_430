@@ -3,6 +3,7 @@ let router = express.Router();
 let path = require('path');
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
+const bodyParser = require("body-parser");
 var flash = require("connect-flash");
 
 let User = require("../models/user.model");
@@ -10,11 +11,12 @@ let User = require("../models/user.model");
 let { body, validationResult } = require('express-validator');
 let Alumni = require('../models/alumni');
 
+router.use(bodyParser.urlencoded({extended : true}));
 
 router.use(require("express-session")({ 
     secret: "EarthScience", 
-    resave: true, 
-    saveUninitialized: true,
+    resave: false, 
+    saveUninitialized: false,
 })); 
 
 router.use(flash());
@@ -37,6 +39,11 @@ router.use((req, res, next) => {
 
 router.get("/login", (req, res, next) => { 
     res.render("admin_login", {  error : req.flash('error') });
+
+}); 
+
+router.get("/change", isLoggedIn, (req, res, next) => { 
+    res.render("change_password", {  error : req.flash('error') });
 
 }); 
    
@@ -193,6 +200,72 @@ router.post('/:id/feature', isLoggedIn,  [
     }
 ]);
 
+router.post('/:id/unfeature', isLoggedIn,  [
+
+    // Data validation and sanitization
+    body('firstName', 'First Name must be specified').trim().isLength({ min: 1}).escape(),
+    body('lastName', 'Last Name must be specified').trim().isLength({ min: 1}).escape(),
+    body('gradYear', 'Graduation Year must be specified').trim().isLength({ min: 1}).escape(),
+    body('degreeType', 'Degree Type must be specified').trim().isLength({ min: 1}).escape(),
+    body('occupation').trim().optional({ checkFalsy: true }).escape(),
+    body('email', 'Email must be specified').trim().isLength({ min: 1}).escape(),
+    body('email', 'Email must be valid').isEmail(),
+    body('description').trim().optional({ checkFalsy: true }).escape(),
+
+    (req, res, next) => {
+        // collect any errors
+        const errors = validationResult(req);
+
+        /*
+        let isFeaturedToggled;
+        if(req.body.isFeatured) {
+            isFeaturedToggled = false;
+        } else {
+            isFeaturedToggled = true;
+        }
+        */
+
+        // create new alumni
+        let alumni = new Alumni ({
+            _id: req.params.id,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            gradYear: req.body.gradYear,
+            degreeType: req.body.degreeType,
+            occupation:  req.body.occupation == '' ? 'N/A' : req.body.occupation,
+            email: req.body.email,
+            emailList: req.body.emailList,
+            description: req.body.description,
+            status: 'approved',
+            //isFeatured: isFeaturedToggled
+            isFeatured: false
+        }); 
+
+        // check for errors
+        if (!errors.isEmpty()) {
+            // Error block
+            res.status(500).send(errors.array());
+        } else {
+            // Success block
+            // instead of alumni.save use alumni.findByIDAndUpdate
+            Alumni.findByIdAndUpdate(req.params.id, alumni, (err, result) => {
+                    if (err) { return next(err); }
+                    res.sendStatus(200);
+            });
+        }
+    }
+]);
+
+router.post('/:id/approve', isLoggedIn, (req, res, next) => {
+    Alumni.findById(req.params.id).exec((err, result) => {
+        if (err) {res.sendStatus(500)}
+        Alumni.findByIdAndUpdate(req.params.id, {'status': 'approved'}, (err, result) => {
+            if (err) {return next(err);}
+            res.sendStatus(200);
+        })
+    })
+})  
+
 router.delete('/:id/delete', isLoggedIn, (req, res, next) => {
     Alumni.findByIdAndRemove(req.params.id, function deleteAlumni(err) {
         if (err) { return next(err); }
@@ -213,15 +286,82 @@ router.get('/pending', isLoggedIn, (req, res, next) => {
         res.render('pending_dashboard.pug', {title: 'Pending', stylesheet: '/styles/dashboard.css', alumni_list: alumni_list});
     });
 });
-  
+
+
+
+
+
+router.get('/search', isLoggedIn, (req, res, next) => {
+    occu = req.query.occupation;
+    degree = req.query.degreetype;
+    year = req.query.gradyear;
+    if((degree === '' && occu !== '') && (year === '')) {
+    Alumni.find({occupation: {'$regex': occu}}).exec((err, result) => {
+        console.log(result)
+        if (err) {return next(err);}
+        res.render('search.pug', {title: 'Search', stylesheet: '/styles/dashboard.css', alumni_list: result});       
+    });
+    }else if ((degree !== '' && occu === '') && (year === '')) {
+        Alumni.find({degreeType: {'$regex': degree}}).exec((err, result) => {
+            if (err) {return next(err);}
+            res.render('search.pug', {title: 'Search', stylesheet: '/styles/dashboard.css', alumni_list: result});       
+        });
+
+    }else if ((degree === '' && occu === '') && (year !== '')) {
+        Alumni.find({gradYear : year }).exec((err, result) => {
+            if (err) {return next(err);}
+            res.render('search.pug', {title: 'Search', stylesheet: '/styles/dashboard.css', alumni_list: result});       
+        });
+    
+    }else if ((degree !== '' && occu !== '') && (year !== '')){
+        Alumni.find({occupation: occu ,degreeType: degree, gradYear : year }).exec((err, result) => {
+            if (err) {return next(err);}
+            res.render('search.pug', {title: 'Search', stylesheet: '/styles/dashboard.css', alumni_list: result});       
+    });
+    }else if ((degree !== '' && occu !== '') && (year === '')){
+        Alumni.find({occupation: occu , degreeType: degree }).exec((err, result) => {
+            if (err) {return next(err);}
+            res.render('search.pug', {title: 'Search', stylesheet: '/styles/dashboard.css', alumni_list: result});       
+    });
+    }else if ((degree !== '' && occu === '') && (year !== '')){
+        Alumni.find({degreeType: degree , gradYear: year }).exec((err, result) => {
+            if (err) {return next(err);}
+            res.render('search.pug', {title: 'Search', stylesheet: '/styles/dashboard.css', alumni_list: result});       
+    });
+    }else if ((degree === '' && occu !== '') && (year !== '')){
+        Alumni.find({occupation: occu , gradYear: year }).exec((err, result) => {
+            if (err) {return next(err);}
+            res.render('search.pug', {title: 'Search', stylesheet: '/styles/dashboard.css', alumni_list: result});       
+    });
+    
+}
+});
+
+
 // Register an Admin
-/*
-var username = "admin"
-var password = "EarthScience"  
-  User.register(new User({ username : username, password: password}), password)
-  */
+
+//var username = "Pratima"
+//var password = "EarthScience"  
+  //User.register(new User({ username : username, password: password}), "test")
+  
    
 //Handling user login 
+
+router.post("/change", isLoggedIn, function(req, res){
+    User.findById("5f92191883473964e2386e22")
+    .then(foundAdmin => {
+        foundAdmin.changePassword(req.body.oldpassword, req.body.newpassword)
+            .then(() => {
+                res.redirect('/admin/login')
+            })
+            .catch((error) => {
+                res.redirect('/admin/change')
+            })
+    })
+    .catch((error) => {
+        console.log(error);
+    })
+});
 
 router.post('/login', passport.authenticate('local', {
     successRedirect : '/admin/dashboard',
@@ -231,11 +371,32 @@ router.post('/login', passport.authenticate('local', {
 
 
 //Handling user logout  
+//my old ver
+/*
 router.get("/logout", function (req, res) { 
     req.logout(); 
     res.render(path.join(__dirname + '/../views/index.pug'));
 }); 
-  
+*/
+//end old ver
+
+
+//Inc change
+//router.get("/logout", function (req, res) { 
+  //  req.logout();
+    //res.sendFile(path.join(__dirname + '/../public/index.html'));
+//}); 
+
+router.get('/logout', function(req,res){
+    req.logout();
+    req.user = null;
+    if (!req.user) 
+        res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+        res.redirect('/');
+   });
+
+//end inc change
+
 function isLoggedIn(req, res, next) { 
     if (req.isAuthenticated()) {
         return next();

@@ -38,6 +38,14 @@ function buttonVisibility(event) {
     }
 }
 
+function addDeleteEventListeners() {
+    document.querySelectorAll('.delete_btn').forEach((btn) => { 
+        btn.addEventListener('click', DELETE_alumni);
+    })
+}
+
+addDeleteEventListeners();
+
 // PAGE RENDERING FUNCTIONS
 
 
@@ -162,9 +170,11 @@ function renderTable() {
             <td data-toggle='modal' data-target='#form_modal' data-type='View' alumni_id='${alumnis[i]._id}'>${alumnis[i].isFeatured}</td>
             <td class='px-0'><button class='btn btn-secondary btn-sm mr-3' data-toggle='modal' data-target='#form_modal' data-type='Update' alumni_id='${alumnis[i]._id}'>Update</button></td>
             <td class='px-0'><button class='btn btn-secondary btn-sm mr-3' alumni_id='${alumnis[i]._id}' onclick='Feature_alumni(event)'>Feature</button></td>
-            <td class='px-0'><button class='btn btn-danger btn-sm' alumni_id='${alumnis[i]._id}' onclick='DELETE_alumni(event)'>Delete</button></td>`;
+            <td class='px-0'><button class='btn btn-danger btn-sm delete_btn' alumni_id='${alumnis[i]._id}'>Delete</button></td>`;
             tbody.appendChild(tr);
         }
+
+        addDeleteEventListeners();
     })
 }
 
@@ -311,8 +321,48 @@ function Feature_alumni(event) {
             console.log('XMLHTTPRequest error');
         }
     });
+}
+
+function UNFeature_alumni(event) {
+    GET_alumni('/api/alumni/' + event.srcElement.getAttribute('alumni_id'), (alumni) => {
+        let firstName = alumni.firstName;
+        let lastName = alumni.lastName;
+        let gradYear = alumni.gradYear;
+        let degreeType = alumni.degreeType;
+        let occupation = alumni.occupation;
+        let email = alumni.email;
+        let emailList = alumni.emailList;
+        let description = alumni.description === undefined ? '' : alumni.description;
+        let isFeatured = alumni.isFeatured;
 
 
-    
+        let url = '/admin/' + event.srcElement.getAttribute('alumni_id') + '/unfeature';
+        //let isFeatured = true;
+        let params = "firstName="+firstName+"&lastName="+lastName+"&gradYear="+gradYear+"&degreeType="+degreeType+"&occupation="+occupation+"&email="+email+"&emailList="+emailList+"&description="+description+"&isFeatured="+isFeatured;
 
+        let xhr = new XMLHttpRequest();
+
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send(params);
+
+        xhr.onload = function() {
+            if (xhr.status == 500) {  
+                // Error Block
+                renderFormErrors(xhr.responseText);
+            } else if (xhr.status == 200) {
+                // Success Block
+                
+                
+                renderTable();
+                resetForm();
+                $('#form_modal').modal('hide');
+                
+            }
+        }
+
+        xhr.onerror = function() {
+            console.log('XMLHTTPRequest error');
+        }
+    });
 }
